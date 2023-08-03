@@ -1,47 +1,34 @@
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import java.io.File;
-import org.junit.Before;
+import io.restassured.response.ValidatableResponse;
+import org.example.OrderData;
+import org.example.OrderHttpClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 @RunWith(Parameterized.class)
 public class CreateOrderTest {
+    private final OrderData orderData;
 
-    private final String fileName;
-
-    public CreateOrderTest(String fileName) {
-        this.fileName = fileName;
+    public CreateOrderTest(OrderData orderData){
+        this.orderData = orderData;
     }
-
-    @Before
-    public void setUp() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru/";
-    }
-
     @Parameterized.Parameters
-    public static Object[][] getFileName() {
+    public static Object[][] generateTestData() {
         return new Object[][]{
-                {"NewOrderData_BLACK"},
-                {"NewOrderData_GREY"},
-                {"NewOrderData_BLACK_and_GREY"},
-                {"NewOrderData_without_color"},
+                {new OrderData("Naruto", "Uchiha", "Konoha, 142 apt.", 4, "+7 800 355 35 35", 5, "2020-06-06", "Saske, come back to Konoha")},
+                {new OrderData("Naruto", "Uchiha", "Konoha, 142 apt.", 4, "+7 800 355 35 35", 5, "2020-06-06", "Saske, come back to Konoha").setColor(new String[] {"BLACK"})},
+                {new OrderData("Naruto", "Uchiha", "Konoha, 142 apt.", 4, "+7 800 355 35 35", 5, "2020-06-06", "Saske, come back to Konoha").setColor(new String[] {"GREY"})},
+                {new OrderData("Naruto", "Uchiha", "Konoha, 142 apt.", 4, "+7 800 355 35 35", 5, "2020-06-06", "Saske, come back to Konoha").setColor(new String[] {"BLACK", "GREY"})},
         };
     }
 
     @Test
     public void getCreateOrderStatusCode() {
-        File json = new File("./src/main/resources/" + fileName + ".json");
-        Response response = given()
-                .header("Content-type", "application/json")
-                .and()
-                .body(json)
-                .when()
-                .post("/api/v1/orders");
-        response.then().assertThat()
+        OrderHttpClient order = new OrderHttpClient();
+        System.out.println(orderData);
+        ValidatableResponse response = order.createOrder(orderData);
+        response.assertThat()
                 .statusCode(201)
                 .and()
                 .body("track", notNullValue());

@@ -1,6 +1,6 @@
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import org.example.Courier;
+import io.restassured.response.ValidatableResponse;
+import org.example.CourierDTO;
+import org.example.CourierHttpClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -16,6 +16,7 @@ public class CreateCourierParameterizedTest {
     private final Integer statusCode;
     private final String fieldNameReturned;
     private final String message;
+    CourierHttpClient courierHttpClient = new CourierHttpClient();
 
     public CreateCourierParameterizedTest(String login, String password, String firstName, Integer statusCode, String fieldNameReturned, String message) {
         this.login = login;
@@ -36,10 +37,9 @@ public class CreateCourierParameterizedTest {
 
     @Test
     public void createCourierIncorrectData() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru/";
-        Courier newCourier = new Courier(login, password, firstName);
-        Response response = newCourier.sendRequestCreate(newCourier);
-        response.then().assertThat()
+        CourierDTO request = new CourierDTO(login, password, firstName);
+        ValidatableResponse response = courierHttpClient.createCourier(request);
+        response.assertThat()
                 .statusCode(statusCode)
                 .and()
                 .body(fieldNameReturned, equalTo(message));

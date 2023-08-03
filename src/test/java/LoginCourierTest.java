@@ -1,32 +1,26 @@
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import org.example.Courier;
-import org.example.ReturnedJson;
-import org.junit.Before;
+import io.restassured.response.ValidatableResponse;
+import org.example.CourierDTO;
+import org.example.CourierHttpClient;
+import org.example.ReturnedJsonForRequestLogin;
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LoginCourierTest {
 
-    @Before
-    public void setUp() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru/";
-    }
+    private final CourierHttpClient courierHttpClient = new CourierHttpClient();
 
     @Test
     public void loginCourierSuccess() {
-        Courier newCourier = new Courier("CourierA", "1111", "Ivan" );
-        newCourier.sendRequestCreate(newCourier);
-        Response response = newCourier.sendRequestLogin(newCourier);
-        response.then().assertThat()
-                .statusCode(200)
-                .and()
-                .body("id", notNullValue());
+        CourierDTO request = new CourierDTO("CourierA", "1111", "Ivan");
+        courierHttpClient.createCourier(request);
+        ValidatableResponse response = courierHttpClient.loginCourier(request);
+        ReturnedJsonForRequestLogin responseBody = response.extract().body().as(ReturnedJsonForRequestLogin.class);
+        assertThat(response.extract().statusCode()).isEqualTo(200);
+        assertThat(responseBody.getId()).isNotNull();
         // почистить за собой данные
-        String id = response.getBody().as(ReturnedJson.class).getId();
-        String url = "/api/v1/courier/" + id;
-        newCourier.sendRequestDelete(url)
-                .then().assertThat()
+        String id = responseBody.getId();
+        ValidatableResponse responseDel = courierHttpClient.deleteCourier(id);
+        responseDel.assertThat()
                 .statusCode(200);
     }
 

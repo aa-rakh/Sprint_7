@@ -1,20 +1,19 @@
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
+import org.example.OrdersListHttpClient;
 import org.junit.Test;
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.notNullValue;
+
+import static org.hamcrest.Matchers.greaterThan;
+
 
 public class OrdersListTest {
 
     @Test
-    public void getOrdersList() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru/";
-        Response response = given()
-                .get("/api/v1/orders");
-        response.then().assertThat()
+    public void getOrdersListNotEmpty() {
+        OrdersListHttpClient orderList = new OrdersListHttpClient();
+        ValidatableResponse response = orderList.getOrdersList();
+        response.assertThat()
                 .statusCode(200)
-                .and()
-                .body("orders", notNullValue());
+                .body("orders.size()", greaterThan(0));
     }
 
 }

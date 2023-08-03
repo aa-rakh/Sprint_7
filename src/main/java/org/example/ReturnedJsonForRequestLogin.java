@@ -1,6 +1,6 @@
 package org.example;
 
-public class ReturnedJson {
+public class ReturnedJsonForRequestLogin {
     private String id;
 
     public String getId() {

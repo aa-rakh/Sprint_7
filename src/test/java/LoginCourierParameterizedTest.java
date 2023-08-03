@@ -1,10 +1,9 @@
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import org.example.Courier;
+import io.restassured.response.ValidatableResponse;
+import org.example.CourierDTO;
+import org.example.CourierHttpClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
 import static org.hamcrest.Matchers.equalTo;
 
 @RunWith(Parameterized.class)
@@ -14,6 +13,8 @@ public class LoginCourierParameterizedTest {
     private final Integer statusCode;
     private final String fieldNameReturned;
     private final String message;
+
+    private final CourierHttpClient courierHttpClient = new CourierHttpClient();
 
     public LoginCourierParameterizedTest(String login, String password, Integer statusCode, String fieldNameReturned, String message) {
         this.login = login;
@@ -34,13 +35,11 @@ public class LoginCourierParameterizedTest {
 
     @Test
     public void loginCourierIncorrectData() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru/";
-        Courier newCourier = new Courier(login, password, "Ben");
-        Response response = newCourier.sendRequestLogin(newCourier);
-        response.then().assertThat()
+        CourierDTO request = new CourierDTO(login, password, "Ben");
+        ValidatableResponse response = courierHttpClient.loginCourier(request);
+        response.assertThat()
                 .statusCode(statusCode)
                 .and()
                 .body(fieldNameReturned, equalTo(message));
-
     }
 }
